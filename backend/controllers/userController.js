@@ -2,10 +2,8 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../helper/generateToken.js";
 
-
-
 export const signup = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { fullname, email, password } = req.body;
 
   try {
     const existingUser = await User.findOne({ email });
@@ -17,7 +15,7 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({
-      username,
+      fullname,
       email,
       password: hashedPassword,
       subscriptionStatus: false, // default: not subscribed
@@ -29,7 +27,7 @@ export const signup = async (req, res) => {
     res.status(201).json({
       user: {
         id: user._id,
-        username: user.username,
+        fullname: user.fullname,
         email: user.email,
         subscriptionStatus: user.subscriptionStatus,
         subscriptionEnd: user.subscriptionEnd,
@@ -42,12 +40,7 @@ export const signup = async (req, res) => {
   }
 };
 
-
-
-
-
 export const login = async (req, res) => {
-    console.log("hi")
   const { email, password } = req.body;
 
   try {
@@ -55,10 +48,9 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-    console.log(password+user.password)
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log("first")
+      console.log("first");
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
@@ -68,7 +60,7 @@ export const login = async (req, res) => {
     res.json({
       user: {
         id: user._id,
-        username: user.username,
+        fullname: user.fullname,
         email: user.email,
         subscriptionStatus: user.subscriptionStatus,
         subscriptionEnd: user.subscriptionEnd,
@@ -78,5 +70,57 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const googleRegister = async (req, res) => {
+  const { fullname, email, password } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+
+    if (user) {
+      const token = generateToken(user._id);
+      console.log("User exists and logged in.");
+
+      res.status(201).json({
+        user: {
+          id: user._id,
+          fullname: user.fullname,
+          email: user.email,
+          subscriptionStatus: user.subscriptionStatus,
+          subscriptionEnd: user.subscriptionEnd,
+        },
+        token,
+      });
+    } else {
+      
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const user = await User.create({
+        fullname,
+        email,
+        password: hashedPassword,
+        subscriptionStatus: false, // default: not subscribed
+        subscriptionEnd: null, // no subscription end date initially
+      });
+
+      const token = generateToken(user._id);
+      console.log("New user created and logged in.");
+
+      res.status(201).json({
+        user: {
+          id: user._id,
+          fullname: user.fullname,
+          email: user.email,
+          subscriptionStatus: user.subscriptionStatus,
+          subscriptionEnd: user.subscriptionEnd,
+        },
+        token,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: "Invalid user data", error });
   }
 };
