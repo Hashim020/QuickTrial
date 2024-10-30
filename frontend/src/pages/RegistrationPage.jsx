@@ -1,4 +1,3 @@
-// src/components/SignupPage.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
@@ -76,9 +75,8 @@ const SignupPage = () => {
           }
         }, [navigate]);
         setSuccess("Account created successfully. Please login.");
-      setFormData({ fullname: "", email: "", password: "" });
+        setFormData({ fullname: "", email: "", password: "" });
       }
-      
     } catch (err) {
       setError("Signup failed. Please try again.");
     } finally {

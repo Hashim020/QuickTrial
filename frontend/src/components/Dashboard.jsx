@@ -1,6 +1,6 @@
-// src/components/Dashboard.jsx
 import React from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 const Dashboard = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100  p-6 animate-fadeIn">

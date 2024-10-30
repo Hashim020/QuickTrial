@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import {jwtDecode }from "jwt-decode"; // Use jwtDecode directly instead of destructuring
+import { jwtDecode } from "jwt-decode";
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const LoginPage = () => {
@@ -30,7 +30,10 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/login", formData);
+      const response = await axios.post(
+        "http://localhost:5000/login",
+        formData
+      );
       const token = response.data.token;
 
       // Store token in localStorage
@@ -39,7 +42,9 @@ const LoginPage = () => {
       // Redirect to subscription page after successful login
       navigate("/subscription");
     } catch (err) {
-      setError("Login failed. Please check your email or password and try again.");
+      setError(
+        "Login failed. Please check your email or password and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +56,10 @@ const LoginPage = () => {
       const { email, name: fullname, sub: password } = data;
       const userData = { fullname, email, password };
 
-      const response = await axios.post("http://localhost:5000/google-auth", userData);
+      const response = await axios.post(
+        "http://localhost:5000/google-auth",
+        userData
+      );
       const token = response.data.token;
 
       // Store token in localStorage
@@ -72,7 +80,9 @@ const LoginPage = () => {
         </h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Email</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Email
+            </label>
             <input
               type="email"
               name="email"
@@ -84,7 +94,9 @@ const LoginPage = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Password</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Password
+            </label>
             <input
               type="password"
               name="password"
