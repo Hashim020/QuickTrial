@@ -1,14 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode }from "jwt-decode"; // Use jwtDecode directly instead of destructuring
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Check if the user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/subscription"); // Redirect to subscription page if already logged in
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,40 +30,35 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/login",
-        formData
-      );
-      console.log("Login successful:", response.data);
+      const response = await axios.post("http://localhost:5000/login", formData);
+      const token = response.data.token;
+
+      // Store token in localStorage
+      localStorage.setItem("token", token);
+
+      // Redirect to subscription page after successful login
+      navigate("/subscription");
     } catch (err) {
-      setError(
-        "Login failed. Please check your email or password and try again."
-      );
+      setError("Login failed. Please check your email or password and try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const googelAuth = async (data) => {
+  const googleAuth = async (data) => {
     setError("");
     try {
-      console.log(data);
       const { email, name: fullname, sub: password } = data;
+      const userData = { fullname, email, password };
 
-      const userData = {
-        fullname,
-        email,
-        password,
-      };
+      const response = await axios.post("http://localhost:5000/google-auth", userData);
+      const token = response.data.token;
 
-      const response = await axios.post(
-        "http://localhost:5000/google-auth",
-        userData
-      );
+      // Store token in localStorage
+      localStorage.setItem("token", token);
 
-      console.log("Login successful:", response);
-
-      // navigate('/home')
+      // Redirect to subscription page
+      navigate("/subscription");
     } catch (err) {
       setError(err?.data?.message || err.error);
     }
@@ -68,9 +72,7 @@ const LoginPage = () => {
         </h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Email
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Email</label>
             <input
               type="email"
               name="email"
@@ -82,9 +84,7 @@ const LoginPage = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Password
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Password</label>
             <input
               type="password"
               name="password"
@@ -105,13 +105,13 @@ const LoginPage = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <p className="ml-[159px] p-2">--Or--</p>
-        <GoogleOAuthProvider clientId={`${clientId}`}>
-          <div className="ml-20">
+        <p className="text-center">--Or--</p>
+        <GoogleOAuthProvider clientId={clientId}>
+          <div className="flex justify-center items-center">
             <GoogleLogin
               onSuccess={(credentialResponse) => {
                 const decoded = jwtDecode(credentialResponse.credential);
-                googelAuth(decoded);
+                googleAuth(decoded);
                 console.log(decoded);
               }}
               onError={() => {
@@ -122,9 +122,8 @@ const LoginPage = () => {
         </GoogleOAuthProvider>
         <p className="text-center text-gray-600 mt-8">
           Don't have an account?{" "}
-          <Link to={"/signup"}>
-            {" "}
-            <a className="text-blue-600 hover:underline">Sign Up</a>
+          <Link to="/signup" className="text-blue-600 hover:underline">
+            Sign Up
           </Link>
         </p>
       </div>

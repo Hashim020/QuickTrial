@@ -92,6 +92,7 @@ export const googleRegister = async (req, res) => {
           subscriptionEnd: user.subscriptionEnd,
         },
         token,
+        success:true,
       });
     } else {
       
@@ -118,9 +119,43 @@ export const googleRegister = async (req, res) => {
           subscriptionEnd: user.subscriptionEnd,
         },
         token,
+        success:true,
       });
     }
   } catch (error) {
     return res.status(400).json({ message: "Invalid user data", error });
   }
 };
+
+
+export const updateSubscription = async (req, res) => {
+  try {
+    const userId = req.user._id
+    const { trialType } = req.body;
+
+    let subscriptionEnd = null;
+    if (trialType === "1-Minute Trial") {
+      subscriptionEnd = new Date(Date.now() + 1 * 60 * 1000); // Add 1 minute
+    } else if (trialType === "7-Day Trial") {
+      subscriptionEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Add 7 days
+    } else {
+      return res.status(400).json({ message: "Invalid trial type" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        subscriptionStatus: true,
+        subscriptionStart: new Date(), // Set the subscription start date to now
+        subscriptionEnd: subscriptionEnd, // Set the calculated subscription end date
+      },
+      { new: true } // Return the updated user document
+    );
+
+    return res.status(200).json({ message: "Subscription updated successfully", user: updatedUser,success:true });
+  } catch (error) {
+    console.error("Error updating subscription:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

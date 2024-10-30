@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // Initially, the user is not subscribed
     },
+    subscriptionStart:{
+      type:Date,
+      default:null,
+    },
     subscriptionEnd: {
       type: Date,
       default: null, // If subscribed, this will be the end date of the subscription
